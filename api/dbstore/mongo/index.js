@@ -7,7 +7,11 @@ const { User } = require('./schemas');
 const log = console.log;
 const mongoDB = appSettings.mongoDb;
 
-mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(
+  mongoDB,
+  { useNewUrlParser: true, useUnifiedTopology: true },
+  () => console.log('Database Connected')
+);
 
 const saveUser = async (body) => {
   let hasError = false;

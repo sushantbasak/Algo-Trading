@@ -7,7 +7,7 @@ const { MESSAGES } = require('../../../constants');
 const { saveUserSchema } = require('../validators/user.schema');
 const httpCode = require('http-status-codes');
 
-constsaveUser = async (req, res) => {
+const saveUser = async (req, res) => {
   try {
     const { status, result } = await userService.saveUser(req.body);
     if (status === 'USER_SAVED') {

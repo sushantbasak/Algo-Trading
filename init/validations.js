@@ -2,7 +2,7 @@ const validator = require('express-validator');
 const ObjectId = require('mongoose').Types.ObjectId;
 const { ENUM } = require('../constants');
 
-exports = module.exports = function (app) {
+const expressValidator = function (app) {
   function hasNoSpaces(value) {
     if (value) {
       if (value.indexOf(' ') < 0) {
@@ -125,3 +125,5 @@ exports = module.exports = function (app) {
     })
   );
 };
+
+module.exports = expressValidator;

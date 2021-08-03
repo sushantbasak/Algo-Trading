@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const appSettings = require('./../config');
+const appSettings = require('../config');
 const api = require('../api');
 const bodyParser = require('body-parser');
 const { celebrate, Joi, errors, isCelebrate } = require('celebrate');

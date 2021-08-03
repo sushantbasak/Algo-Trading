@@ -2,10 +2,10 @@
 
 const config = {
   development: {
-    mongoDb: 'mongodb+srv://etcetc',
-    port: process.env.PORT || 8001,
+    mongoDb: 'mongodb://127.0.0.1:27017/algo-trader-api',
+    port: process.env.PORT || 3001,
     jwt: {
-      secrets: 'Nothingspecialyouwanttoreveal',
+      secrets: 'What a drag, I need to set this too',
       expiresIn: 'a365asdfasd',
     },
   },
