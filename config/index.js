@@ -1,8 +1,10 @@
 'use strict';
 
+require('dotenv').config();
+
 const config = {
   development: {
-    mongoDb: 'mongodb://127.0.0.1:27017/algo-trader-api',
+    mongoDb: process.env.DB_URL,
     port: process.env.PORT || 3001,
     jwt: {
       secrets: 'What a drag, I need to set this too',
