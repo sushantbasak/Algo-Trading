@@ -9,8 +9,13 @@ const mongoDB = appSettings.mongoDb;
 
 mongoose.connect(
   mongoDB,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  () => console.log('Database Connected')
+  {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+    useUnifiedTopology: true,
+  },
+  () => console.log(`Database Connected on ${mongoDB}`)
 );
 
 const saveUser = async (body) => {
