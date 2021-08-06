@@ -18,11 +18,54 @@ mongoose.connect(
   () => console.log(`Database Connected on ${mongoDB}`)
 );
 
+const createUser = async (body) => {
+  // const result = await User.schema.create({ $set: body }, (error, doc) => {
+  //   if (error) hasError = error;
+  // });
+
+  // return { result: result.toJSON(), hasError };
+
+  try {
+    const result = await User.schema.create(body);
+
+    return { result, hasError: null };
+  } catch (e) {
+    return { result: null, hasError: e };
+  }
+};
+
+const findUser = async (body) => {
+  try {
+    const result = await User.schema.findOne(body);
+
+    // Case 1 :- In this case password is not deleted
+    // console.log(typeof result);
+
+    // delete result.password;
+
+    // Case 2 :- Password is deleted when we use toJSON method
+
+    const final = result.toJSON();
+
+    console.log(typeof final);
+
+    delete final.password;
+
+    delete final.isEmailConfirmed;
+
+    console.log('Final Result', result);
+
+    return { result: final, hasError: null };
+  } catch (e) {
+    return { result: null, hasError: e };
+  }
+};
+
 const saveUser = async (body) => {
   let hasError = false;
   body.updatedAt = +new Date();
 
-  const result = await User.schema.findOneAndUpdate(
+  const result = await User.schema.create(
     { id: body.id || uuidv4() },
     { $set: body },
     { upsert: true },
@@ -37,6 +80,8 @@ const saveUser = async (body) => {
 };
 
 const dbStoreHandler = {
+  createUser,
+  findUser,
   saveUser,
 };
 

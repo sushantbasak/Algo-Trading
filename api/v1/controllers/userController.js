@@ -24,6 +24,52 @@ const saveUser = async (req, res) => {
   }
 };
 
+const createUser = async (req, res) => {
+  try {
+    const { status, result } = await userService.createUser(req.body);
+    if (status === 'USER_CREATED') {
+      res.sendSuccess(
+        result,
+        MESSAGES.api.CREATED,
+        httpCode.StatusCodes.CREATED
+      );
+    } else {
+      res.sendError(UNKNOWN_SERVER_ERROR, MESSAGES.api.SOMETHING_WENT_WRONG);
+    }
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+    res.sendError(
+      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+      MESSAGES.api.SOMETHING_WENT_WRONG
+    );
+  }
+};
+
+const findUser = async (req, res) => {
+  try {
+    const { status, result } = await userService.findUser(req.body);
+    if (status === 'USER_FOUND') {
+      res.sendSuccess(
+        result,
+        MESSAGES.api.SUCCESS,
+        httpCode.StatusCodes.SUCCESS
+      );
+    } else {
+      res.sendError(UNKNOWN_SERVER_ERROR, MESSAGES.api.SOMETHING_WENT_WRONG);
+    }
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+    res.sendError(
+      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+      MESSAGES.api.SOMETHING_WENT_WRONG
+    );
+  }
+};
+
+const loginUser = (req, res) => {
+  res.send('HELLO');
+};
+
 // Define all the user route here
 router.put(
   '/save',
@@ -32,5 +78,11 @@ router.put(
   }),
   saveUser
 );
+
+router.get('/login', loginUser);
+
+router.post('/register', createUser);
+
+router.post('/profile', findUser);
 
 module.exports = router;
