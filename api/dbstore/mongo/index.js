@@ -53,11 +53,9 @@ const findUser = async (body) => {
 
     delete final.isEmailConfirmed;
 
-    console.log('Final Result', result);
-
     return { result: final, hasError: null };
   } catch (e) {
-    return { result: null, hasError: e };
+    return { result: null, hasError: true };
   }
 };
 

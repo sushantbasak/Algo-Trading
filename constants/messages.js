@@ -5,6 +5,8 @@ module.exports = {
     SOMETHING_WENT_WRONG: 'Something went wrong.',
     UNAUTHORIZED_USER: 'Unauthorized User',
     CREATED: 'Created!',
+    NOT_FOUND: 'Resource Looking for is not found.',
+    USER_NOT_FOUND: 'User Account not found!',
   },
   validations: {},
 };

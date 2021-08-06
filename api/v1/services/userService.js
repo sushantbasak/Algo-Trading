@@ -21,7 +21,6 @@ const createUser = async (data) => {
 const findUser = async (data) => {
   const { result, hasError } = await dbStoreHandler.findUser(data);
 
-  console.log(result);
   if (hasError) {
     return { status: 'ERROR_FOUND' };
   }

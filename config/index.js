@@ -7,8 +7,8 @@ const config = {
     mongoDb: process.env.DB_URL,
     port: process.env.PORT || 3001,
     jwt: {
-      secrets: 'What a drag, I need to set this too',
-      expiresIn: 'a365asdfasd',
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.EXPIRESIN,
     },
   },
 };

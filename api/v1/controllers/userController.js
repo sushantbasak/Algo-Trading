@@ -6,6 +6,8 @@ const userService = require('../services/userService');
 const { MESSAGES } = require('../../../constants');
 const { saveUserSchema } = require('../validators/user.schema');
 const httpCode = require('http-status-codes');
+const { generateAuthToken, protect } = require('../middleware/auth');
+const httpCodes = require('../../../constants/http-codes');
 
 const saveUser = async (req, res) => {
   try {
@@ -45,7 +47,7 @@ const createUser = async (req, res) => {
   }
 };
 
-const findUser = async (req, res) => {
+const getProfile = async (req, res) => {
   try {
     const { status, result } = await userService.findUser(req.body);
     if (status === 'USER_FOUND') {
@@ -55,7 +57,10 @@ const findUser = async (req, res) => {
         httpCode.StatusCodes.SUCCESS
       );
     } else {
-      res.sendError(UNKNOWN_SERVER_ERROR, MESSAGES.api.SOMETHING_WENT_WRONG);
+      res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.api.USER_NOT_FOUND
+      );
     }
   } catch (ex) {
     ErrorHandler.extractError(ex);
@@ -66,8 +71,38 @@ const findUser = async (req, res) => {
   }
 };
 
-const loginUser = (req, res) => {
-  res.send('HELLO');
+const loginUser = async (req, res) => {
+  try {
+    const { status, result } = await userService.findUser(req.body);
+    if (status === 'USER_FOUND') {
+      const token = await generateAuthToken(result._id);
+
+      res.sendSuccess(
+        { token },
+        MESSAGES.api.SUCCESS,
+        httpCode.StatusCodes.SUCCESS
+      );
+    } else {
+      res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.api.USER_NOT_FOUND
+      );
+    }
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+    res.sendError(
+      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+      MESSAGES.api.SOMETHING_WENT_WRONG
+    );
+  }
+};
+
+const logoutUser = (req, res) => {
+  res.send('Logout User');
+};
+
+const updateUser = (req, res) => {
+  res.send('User Updated');
 };
 
 // Define all the user route here
@@ -79,10 +114,14 @@ router.put(
   saveUser
 );
 
-router.get('/login', loginUser);
+router.post('/login', loginUser);
 
 router.post('/register', createUser);
 
-router.post('/profile', findUser);
+router.get('/profile', protect, getProfile);
+
+router.patch('/update', updateUser);
+
+router.get('/logout', logoutUser);
 
 module.exports = router;
