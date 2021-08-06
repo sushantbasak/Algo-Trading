@@ -6,8 +6,9 @@ const userService = require('../services/userService');
 const { MESSAGES } = require('../../../constants');
 const { saveUserSchema } = require('../validators/user.schema');
 const httpCode = require('http-status-codes');
-const { generateAuthToken, protect } = require('../middleware/auth');
 const httpCodes = require('../../../constants/http-codes');
+const { generateAuthToken, protect } = require('../middleware/auth');
+const { generateHash, compareHash } = require('../middleware/hash');
 
 const saveUser = async (req, res) => {
   try {
@@ -28,7 +29,11 @@ const saveUser = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { status, result } = await userService.createUser(req.body);
+    const user = req.body;
+
+    user['password'] = await generateHash(user.password);
+
+    const { status, result } = await userService.createUser(user);
     if (status === 'USER_CREATED') {
       res.sendSuccess(
         result,
@@ -48,27 +53,7 @@ const createUser = async (req, res) => {
 };
 
 const getProfile = async (req, res) => {
-  try {
-    const { status, result } = await userService.findUser(req.body);
-    if (status === 'USER_FOUND') {
-      res.sendSuccess(
-        result,
-        MESSAGES.api.SUCCESS,
-        httpCode.StatusCodes.SUCCESS
-      );
-    } else {
-      res.sendError(
-        httpCode.StatusCodes.BAD_REQUEST,
-        MESSAGES.api.USER_NOT_FOUND
-      );
-    }
-  } catch (ex) {
-    ErrorHandler.extractError(ex);
-    res.sendError(
-      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
-      MESSAGES.api.SOMETHING_WENT_WRONG
-    );
-  }
+  res.sendSuccess(req.user, MESSAGES.api.SUCCESS, httpCode.StatusCodes.SUCCESS);
 };
 
 const loginUser = async (req, res) => {
@@ -114,7 +99,7 @@ router.put(
   saveUser
 );
 
-router.post('/login', loginUser);
+router.post('/login', compareHash, loginUser);
 
 router.post('/register', createUser);
 

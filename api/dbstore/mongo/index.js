@@ -28,7 +28,13 @@ const createUser = async (body) => {
   try {
     const result = await User.schema.create(body);
 
-    return { result, hasError: null };
+    const final = result.toJSON();
+
+    delete final.password;
+
+    delete final.isEmailConfirmed;
+
+    return { result: final, hasError: null };
   } catch (e) {
     return { result: null, hasError: e };
   }
