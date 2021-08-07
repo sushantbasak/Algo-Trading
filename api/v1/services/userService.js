@@ -27,10 +27,20 @@ const findUser = async (data) => {
   return { result, status: 'USER_FOUND' };
 };
 
+const getPassword = async (data) => {
+  const { result, hasError } = await dbStoreHandler.getPassword(data);
+
+  if (hasError) {
+    return { status: 'ERROR_FOUND' };
+  }
+  return { result, status: 'USER_FOUND' };
+};
+
 const userService = {
   saveUser,
   createUser,
   findUser,
+  getPassword,
 };
 
 module.exports = userService;

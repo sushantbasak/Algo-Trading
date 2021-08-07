@@ -65,6 +65,16 @@ const findUser = async (body) => {
   }
 };
 
+const getPassword = async (body) => {
+  try {
+    const { _id, password, isEmailConfirmed } = await User.schema.findOne(body);
+
+    return { result: { _id, password, isEmailConfirmed }, hasError: null };
+  } catch (e) {
+    return { result: null, hasError: true };
+  }
+};
+
 const saveUser = async (body) => {
   let hasError = false;
   body.updatedAt = +new Date();
@@ -87,6 +97,7 @@ const dbStoreHandler = {
   createUser,
   findUser,
   saveUser,
+  getPassword,
 };
 
 module.exports = dbStoreHandler;

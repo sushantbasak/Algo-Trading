@@ -58,21 +58,13 @@ const getProfile = async (req, res) => {
 
 const loginUser = async (req, res) => {
   try {
-    const { status, result } = await userService.findUser(req.body);
-    if (status === 'USER_FOUND') {
-      const token = await generateAuthToken(result._id);
+    const token = await generateAuthToken(req.user._id);
 
-      res.sendSuccess(
-        { token },
-        MESSAGES.api.SUCCESS,
-        httpCode.StatusCodes.SUCCESS
-      );
-    } else {
-      res.sendError(
-        httpCode.StatusCodes.BAD_REQUEST,
-        MESSAGES.api.USER_NOT_FOUND
-      );
-    }
+    res.sendSuccess(
+      { token },
+      MESSAGES.api.SUCCESS,
+      httpCode.StatusCodes.SUCCESS
+    );
   } catch (ex) {
     ErrorHandler.extractError(ex);
     res.sendError(

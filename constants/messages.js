@@ -7,6 +7,7 @@ module.exports = {
     CREATED: 'Created!',
     NOT_FOUND: 'Resource Looking for is not found.',
     USER_NOT_FOUND: 'User Account not found!',
+    INVALID_CREDENTIALS: 'Credentials not matched',
   },
   validations: {},
 };
