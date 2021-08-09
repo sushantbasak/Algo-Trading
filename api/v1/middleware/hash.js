@@ -6,7 +6,7 @@ const httpCode = require('http-status-codes');
 const { MESSAGES } = require('../../../constants');
 
 const generateHash = async (password) => {
-  const hash = await bcrypt.hash(password, +appSettings.round);
+  const hash = await bcrypt.hash(password, +appSettings.saltRound);
 
   return hash;
 };

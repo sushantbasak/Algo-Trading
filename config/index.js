@@ -6,11 +6,14 @@ const config = {
   development: {
     mongoDb: process.env.DB_URL,
     port: process.env.PORT || 3001,
-    round: process.env.SALTROUND,
+    saltRound: process.env.SALTROUND,
     jwt: {
       secret: process.env.JWT_SECRET,
       expiresIn: process.env.EXPIRESIN,
     },
+    homeMail: process.env.HOME_MAIL,
+    homeMailPassword: process.env.HOME_MAIL_PASSWORD,
+    emailServiceProvider: process.env.EMAIL_SERVICE_PROVIDER,
   },
 };
 
