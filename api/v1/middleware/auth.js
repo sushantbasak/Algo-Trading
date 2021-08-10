@@ -36,6 +36,13 @@ const protect = async (req, res, next) => {
       );
     }
 
+    if (req.user.isEmailConfirmed === false) {
+      return res.sendError(
+        httpCode.StatusCodes.OK,
+        MESSAGES.api.EMAIL_CONFIRMATION
+      );
+    }
+
     req.user = result;
 
     next();

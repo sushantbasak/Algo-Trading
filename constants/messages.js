@@ -8,6 +8,7 @@ module.exports = {
     NOT_FOUND: 'Resource Looking for is not found.',
     USER_NOT_FOUND: 'User Account not found!',
     INVALID_CREDENTIALS: 'Credentials not matched',
+    EMAIL_CONFIRMATION: 'Email Not yet confirmed Check your email inbox',
   },
   validations: {},
 };

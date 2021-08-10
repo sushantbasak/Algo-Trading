@@ -9,6 +9,7 @@ const httpCode = require('http-status-codes');
 const httpCodes = require('../../../constants/http-codes');
 const { generateAuthToken, protect } = require('../middleware/auth');
 const { generateHash, compareHash } = require('../middleware/hash');
+const { sendEmailConfirmation } = require('../services/mailService');
 
 const saveUser = async (req, res) => {
   try {
@@ -33,8 +34,16 @@ const createUser = async (req, res) => {
 
     user['password'] = await generateHash(user.password);
 
+    let errorFound = true;
+
     const { status, result } = await userService.createUser(user);
     if (status === 'USER_CREATED') {
+      const { hasError } = await sendEmailConfirmation(user, req);
+
+      if (!hasError) errorFound = false;
+    }
+
+    if (!errorFound) {
       res.sendSuccess(
         result,
         MESSAGES.api.CREATED,
