@@ -8,7 +8,12 @@ module.exports = {
     NOT_FOUND: 'Resource Looking for is not found.',
     USER_NOT_FOUND: 'User Account not found!',
     INVALID_CREDENTIALS: 'Credentials not matched',
-    EMAIL_CONFIRMATION: 'Email Not yet confirmed Check your email inbox',
+    EMAIL_NOT_CONFIRMATION: 'Email Not yet confirmed Check your email inbox',
+    EMAIL_VERIFICATION_SUCCESSFULL: 'Your Email has verified successfully',
+    UPDATE_UNSUCCESSFULL: 'Unable to Update Requested Field',
+    UPDATE_SUCCESSFULL: 'All details has been updated!',
+    LINK_EXPIRED:
+      'Given link has expired. Please repeat the process of generation of new Link otherwise contact our team',
   },
   validations: {},
 };

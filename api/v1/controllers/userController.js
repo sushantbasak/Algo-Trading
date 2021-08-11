@@ -38,7 +38,7 @@ const createUser = async (req, res) => {
 
     const { status, result } = await userService.createUser(user);
     if (status === 'USER_CREATED') {
-      const { hasError } = await sendEmailConfirmation(user, req);
+      const { hasError } = await sendEmailConfirmation(result, req);
 
       if (!hasError) errorFound = false;
     }

@@ -75,6 +75,19 @@ const getPassword = async (body) => {
   }
 };
 
+const updateUser = async (filter, updateData) => {
+  try {
+    const { _id, name, email } = await User.schema.findOneAndUpdate(
+      filter,
+      updateData
+    );
+
+    return { result: { _id, name, email }, hasError: null };
+  } catch (e) {
+    return { result: null, hasError: true };
+  }
+};
+
 const saveUser = async (body) => {
   let hasError = false;
   body.updatedAt = +new Date();
@@ -98,6 +111,7 @@ const dbStoreHandler = {
   findUser,
   saveUser,
   getPassword,
+  updateUser,
 };
 
 module.exports = dbStoreHandler;

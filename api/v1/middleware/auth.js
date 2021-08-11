@@ -5,6 +5,7 @@ const userService = require('../services/userService');
 const ErrorHandler = require('../../utils/errorHandler');
 const httpCode = require('http-status-codes');
 const { MESSAGES } = require('../../../constants');
+const url = require('url');
 
 const {
   jwt: { secret, expiresIn },
@@ -39,7 +40,7 @@ const protect = async (req, res, next) => {
     if (req.user.isEmailConfirmed === false) {
       return res.sendError(
         httpCode.StatusCodes.OK,
-        MESSAGES.api.EMAIL_CONFIRMATION
+        MESSAGES.api.EMAIL_NOT_CONFIRMATION
       );
     }
 
@@ -55,4 +56,26 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = { generateAuthToken, protect };
+const confirmEmailToken = async (req, res, next) => {
+  try {
+    const { token } = url.parse(req.url, true).query;
+
+    const decoded = await jwt.verify(token, secret);
+
+    req.user = {
+      _id: decoded.id,
+    };
+
+    next();
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+    return res.sendError(
+      httpCode.StatusCodes.UNAUTHORIZED,
+      MESSAGES.api.LINK_EXPIRED
+    );
+  }
+
+  next();
+};
+
+module.exports = { generateAuthToken, protect, confirmEmailToken };
