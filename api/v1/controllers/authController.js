@@ -7,8 +7,9 @@ const { MESSAGES } = require('../../../constants');
 const { saveUserSchema } = require('../validators/user.schema');
 const httpCode = require('http-status-codes');
 const httpCodes = require('../../../constants/http-codes');
-const { confirmEmailToken } = require('../middleware/auth');
+const { confirmAuthToken } = require('../middleware/auth');
 const { sendResetPasswordLink } = require('../services/mailService');
+const { verifyHash, generateHash } = require('../middleware/hash');
 const url = require('url');
 
 const confirmEmail = async (req, res) => {
@@ -80,16 +81,63 @@ const forgetPassword = async (req, res) => {
   }
 };
 
-const resetPassword = (req, res) => {
-  res.send('Long time no see !');
+const resetPassword = async (req, res) => {
+  try {
+    const userData = await userService.getPassword(req.user);
+
+    if (userData.status === 'ERROR_FOUND') {
+      return res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.api.USER_NOT_FOUND
+      );
+    }
+
+    const verifyPassword = await verifyHash(
+      userData.result.password,
+      req.body.password
+    );
+
+    if (verifyPassword.status === 'SUCCESS') {
+      return res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.api.SAME_AS_PREV_PASSWORD
+      );
+    }
+
+    if (verifyPassword.status === 'ERROR_FOUND') throw new Error();
+
+    const hashedPassword = await generateHash(req.body.password);
+
+    const updateUser = await userService.updateUser(req.user, {
+      password: hashedPassword,
+    });
+
+    if (updateUser.status === 'ERROR_FOUND') {
+      return res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.api.UPDATE_UNSUCCESSFULL
+      );
+    }
+
+    res.sendSuccess(
+      MESSAGES.api.UPDATE_SUCCESSFULL,
+      httpCode.StatusCodes.SUCCESS
+    );
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+    res.sendError(
+      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+      MESSAGES.api.SOMETHING_WENT_WRONG
+    );
+  }
 };
 
 // Define all the user route here
 
-router.get('/confirmemail', confirmEmailToken, confirmEmail);
+router.get('/confirmemail', confirmAuthToken, confirmEmail);
 
 router.get('/forgetpassword', forgetPassword);
 
-router.post('/reset', resetPassword);
+router.post('/reset', confirmAuthToken, resetPassword);
 
 module.exports = router;

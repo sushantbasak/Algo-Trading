@@ -5,6 +5,7 @@ const uuidv4 = require('uuid').v4;
 const appSettings = require('../../../config');
 const { User } = require('./schemas');
 const log = console.log;
+const ErrorHandler = require('../../utils/errorHandler');
 const mongoDB = appSettings.mongoDb;
 
 mongoose.connect(
@@ -36,6 +37,8 @@ const createUser = async (body) => {
 
     return { result: final, hasError: null };
   } catch (e) {
+    ErrorHandler.extractError(ex);
+
     return { result: null, hasError: e };
   }
 };
@@ -59,6 +62,8 @@ const findUser = async (body) => {
 
     return { result: final, hasError: null };
   } catch (e) {
+    ErrorHandler.extractError(ex);
+
     return { result: null, hasError: true };
   }
 };
@@ -69,6 +74,8 @@ const getPassword = async (body) => {
 
     return { result: { _id, password, isEmailConfirmed }, hasError: null };
   } catch (e) {
+    ErrorHandler.extractError(ex);
+
     return { result: null, hasError: true };
   }
 };
@@ -86,6 +93,8 @@ const updateUser = async (filter, updateData) => {
 
     return { result: { _id, name, email }, hasError: null };
   } catch (e) {
+    ErrorHandler.extractError(ex);
+
     return { result: null, hasError: true };
   }
 };

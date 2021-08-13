@@ -56,7 +56,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-const confirmEmailToken = async (req, res, next) => {
+const confirmAuthToken = async (req, res, next) => {
   try {
     const { token } = url.parse(req.url, true).query;
 
@@ -74,8 +74,6 @@ const confirmEmailToken = async (req, res, next) => {
       MESSAGES.api.LINK_EXPIRED
     );
   }
-
-  next();
 };
 
-module.exports = { generateAuthToken, protect, confirmEmailToken };
+module.exports = { generateAuthToken, protect, confirmAuthToken };

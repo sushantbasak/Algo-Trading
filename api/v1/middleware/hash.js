@@ -11,6 +11,22 @@ const generateHash = async (password) => {
   return hash;
 };
 
+const verifyHash = async (encryptedPassword, password) => {
+  try {
+    const isMatch = await bcrypt.compare(password, encryptedPassword);
+
+    if (!isMatch) {
+      return { status: 'HASH_NOT_MATCHED' };
+    }
+
+    return { status: 'SUCCESS' };
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+
+    return { status: 'ERROR_FOUND' };
+  }
+};
+
 const compareHash = async (req, res, next) => {
   try {
     const { result, status } = await userService.getPassword({
@@ -40,4 +56,4 @@ const compareHash = async (req, res, next) => {
   }
 };
 
-module.exports = { generateHash, compareHash };
+module.exports = { generateHash, compareHash, verifyHash };

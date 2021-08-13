@@ -15,6 +15,8 @@ module.exports = {
     UPDATE_SUCCESSFULL: 'All details has been updated!',
     NO_NEW_UPDATE: 'No New Data requested for update',
     PASSWORD_RESET_LINK: 'Password Reset Link Sent to your Email Address',
+    SAME_AS_PREV_PASSWORD:
+      'Password Same as previous Password. You need to input different password',
     LINK_EXPIRED:
       'Given link has expired. Please repeat the process of generation of new Link otherwise contact our team',
   },
