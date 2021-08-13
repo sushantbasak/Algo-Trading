@@ -57,8 +57,6 @@ const findUser = async (body) => {
 
     delete final.password;
 
-    delete final.isEmailConfirmed;
-
     return { result: final, hasError: null };
   } catch (e) {
     return { result: null, hasError: true };
@@ -79,7 +77,11 @@ const updateUser = async (filter, updateData) => {
   try {
     const { _id, name, email } = await User.schema.findOneAndUpdate(
       filter,
-      updateData
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
     return { result: { _id, name, email }, hasError: null };

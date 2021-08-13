@@ -87,8 +87,83 @@ const logoutUser = (req, res) => {
   res.send('Logout User');
 };
 
-const updateUser = (req, res) => {
-  res.send('User Updated');
+const updateUser = async (req, res) => {
+  const updates = Object.keys(req.body);
+
+  const allowedUpdates = ['name', 'email', 'password'];
+
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+
+  if (!isValidOperation)
+    return res.sendError(
+      httpCode.StatusCodes.BAD_REQUEST,
+      MESSAGES.validations.INVALID_UPDATE
+    );
+
+  try {
+    let flag = false;
+
+    for (let i = 0; i < updates.length; i++) {
+      let data = updates[i];
+
+      // if (data === 'password') {
+      //   req.body[data] = await generateHash(req.body[data]);
+
+      //   const { result, hasError } = await userService.getPassword(req.user);
+
+      //   if (hasError) throw new Error();
+
+      //   console.log(result.password, ' \n', req.body[data]);
+
+      //   if (result.password !== req.body[data]) flag = true;
+
+      //   console.log(flag);
+      // }
+
+      if (
+        req.body[data].length &&
+        data !== 'password' &&
+        req.body[data] !== req.user[data]
+      )
+        flag = true;
+
+      req.user[data] = req.body[data];
+    }
+
+    if (!flag) {
+      res.sendSuccess(
+        req.body,
+        MESSAGES.api.NO_NEW_UPDATE,
+        httpCode.StatusCodes.SUCCESS
+      );
+    }
+
+    const { result, hasError } = await userService.updateUser(
+      { _id: req.user._id },
+      req.user
+    );
+
+    if (hasError) {
+      return res.sendError(
+        httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+        MESSAGES.api.UPDATE_UNSUCCESSFULL
+      );
+    }
+
+    res.sendSuccess(
+      result,
+      MESSAGES.api.UPDATE_SUCCESSFULL,
+      httpCode.StatusCodes.SUCCESS
+    );
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+    res.sendError(
+      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+      MESSAGES.api.SOMETHING_WENT_WRONG
+    );
+  }
 };
 
 // Define all the user route here
@@ -106,7 +181,7 @@ router.post('/register', createUser);
 
 router.get('/profile', protect, getProfile);
 
-router.patch('/update', updateUser);
+router.patch('/update', protect, updateUser);
 
 router.get('/logout', logoutUser);
 

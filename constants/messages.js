@@ -12,8 +12,11 @@ module.exports = {
     EMAIL_VERIFICATION_SUCCESSFULL: 'Your Email has verified successfully',
     UPDATE_UNSUCCESSFULL: 'Unable to Update Requested Field',
     UPDATE_SUCCESSFULL: 'All details has been updated!',
+    NO_NEW_UPDATE: 'No New Data requested for update',
     LINK_EXPIRED:
       'Given link has expired. Please repeat the process of generation of new Link otherwise contact our team',
   },
-  validations: {},
+  validations: {
+    INVALID_UPDATE: "Requested fields can't be updated",
+  },
 };

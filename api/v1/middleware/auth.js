@@ -37,7 +37,7 @@ const protect = async (req, res, next) => {
       );
     }
 
-    if (req.user.isEmailConfirmed === false) {
+    if (result.isEmailConfirmed === false) {
       return res.sendError(
         httpCode.StatusCodes.OK,
         MESSAGES.api.EMAIL_NOT_CONFIRMATION
