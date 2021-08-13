@@ -4,6 +4,7 @@ module.exports = {
     SERVER_ERROR: 'Error occurred on server. Please, report it back to team.',
     SOMETHING_WENT_WRONG: 'Something went wrong.',
     UNAUTHORIZED_USER: 'Unauthorized User',
+    MISSING_QUERY_PARAMETER: 'Please Add Required Query Parameter',
     CREATED: 'Created!',
     NOT_FOUND: 'Resource Looking for is not found.',
     USER_NOT_FOUND: 'User Account not found!',
@@ -13,6 +14,7 @@ module.exports = {
     UPDATE_UNSUCCESSFULL: 'Unable to Update Requested Field',
     UPDATE_SUCCESSFULL: 'All details has been updated!',
     NO_NEW_UPDATE: 'No New Data requested for update',
+    PASSWORD_RESET_LINK: 'Password Reset Link Sent to your Email Address',
     LINK_EXPIRED:
       'Given link has expired. Please repeat the process of generation of new Link otherwise contact our team',
   },

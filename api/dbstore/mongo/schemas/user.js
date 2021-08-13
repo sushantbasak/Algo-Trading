@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  isPasswordReset: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = {
