@@ -9,7 +9,9 @@ const config = {
     saltRound: process.env.SALTROUND,
     jwt: {
       secret: process.env.JWT_SECRET,
+      resetsecret: process.env.JWT_SECRET_RESET,
       expiresIn: process.env.EXPIRESIN,
+      resetexpiresIn: process.env.RESETEXPIRESIN,
     },
     homeMail: process.env.HOME_MAIL,
     homeMailPassword: process.env.HOME_MAIL_PASSWORD,

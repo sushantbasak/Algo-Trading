@@ -10,7 +10,7 @@ const appSettings = require('../../../config/index');
 const ErrorHandler = require('../../utils/errorHandler');
 const { MESSAGES } = require('../../../constants');
 const {
-  jwt: { secret, expiresIn },
+  jwt: { secret, expiresIn, resetsecret, resetexpiresIn },
 } = appSettings;
 
 // Imports
@@ -19,11 +19,23 @@ const userService = require('../services/userService');
 
 // Functions
 
-const generateAuthToken = async (userId) => {
+const generateAuthToken = async (userId, expiry = false) => {
   try {
+    let expiryTime = expiresIn,
+      secretValue = secret;
+
+    if (expiry) {
+      expiryTime = resetexpiresIn;
+
+      secretValue = resetsecret;
+    }
+
+    console.log(secretValue, expiryTime);
+
     const token = await jwt.sign(
       { id: userId, date: new Date().getTime() },
-      secret
+      secretValue,
+      { expiresIn: expiryTime }
     );
 
     return { status: 'SUCCESS', token };
@@ -73,6 +85,8 @@ const confirmAuthToken = async (req, res, next) => {
   try {
     const { token } = url.parse(req.url, true).query;
 
+    const pathname = url.parse(req.url, true).pathname;
+
     if (token === undefined) {
       return res.sendError(
         httpCode.StatusCodes.BAD_REQUEST,
@@ -80,7 +94,13 @@ const confirmAuthToken = async (req, res, next) => {
       );
     }
 
-    const decoded = await jwt.verify(token, secret);
+    let secretValue = resetsecret;
+
+    if (pathname === '/confirmemail') {
+      secretValue = secret;
+    }
+
+    const decoded = await jwt.verify(token, secretValue);
 
     const { result, status } = await userService.findUser({
       _id: decoded.id,

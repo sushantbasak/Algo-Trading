@@ -45,7 +45,7 @@ const sendEmailConfirmation = async (user, req) => {
 
 const sendResetPasswordLink = async (user, req) => {
   try {
-    const resetPasswordToken = await generateAuthToken(user._id);
+    const resetPasswordToken = await generateAuthToken(user._id, true);
 
     if (resetPasswordToken.status === 'ERROR_FOUND')
       throw new Error('Unable to generate Auth Token');
