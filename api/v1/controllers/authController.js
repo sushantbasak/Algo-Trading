@@ -1,35 +1,43 @@
+// Library
+
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
-const { UNKNOWN_SERVER_ERROR } = require('../../../constants/http-codes');
+const url = require('url');
+const httpCode = require('http-status-codes');
+
+// Services
+
 const ErrorHandler = require('../../utils/errorHandler');
 const userService = require('../services/userService');
 const { MESSAGES } = require('../../../constants');
-const { saveUserSchema } = require('../validators/user.schema');
-const httpCode = require('http-status-codes');
-const httpCodes = require('../../../constants/http-codes');
-const { confirmAuthToken } = require('../middleware/auth');
+
+// Imports
+
+const { confirmAuthToken, protect } = require('../middleware/auth');
 const { sendResetPasswordLink } = require('../services/mailService');
 const { verifyHash, generateHash } = require('../middleware/hash');
-const url = require('url');
+
+// Functions
 
 const confirmEmail = async (req, res) => {
   try {
+    if (req.user.isEmailConfirmed)
+      return res.sendError(
+        httpCode.StatusCodes.OK,
+        MESSAGES.api.EMAIL_ALREADY_CONFIRMATION
+      );
+
     const updatedValues = {
       isEmailConfirmed: true,
     };
 
-    const { status } = await userService.updateUser(req.user, updatedValues);
+    const getUser = await userService.updateUser(req.user, updatedValues);
 
-    if (status === 'ERROR_FOUND') {
-      return res.sendError(
-        httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
-        MESSAGES.api.UPDATE_UNSUCCESSFULL
-      );
-    }
+    if (getUser.status === 'ERROR_FOUND')
+      throw new Error('Unable to get Confirm Email');
 
     res.sendSuccess(
       MESSAGES.api.EMAIL_VERIFICATION_SUCCESSFULL,
-      httpCode.StatusCodes.CREATED
+      httpCode.StatusCodes.ACCEPTED
     );
   } catch (ex) {
     ErrorHandler.extractError(ex);
@@ -41,35 +49,21 @@ const confirmEmail = async (req, res) => {
 };
 
 const forgetPassword = async (req, res) => {
-  const { email } = url.parse(req.url, true).query;
+  const { _id } = req.user;
 
   try {
-    if (email === undefined) {
-      return res.sendError(
-        httpCode.StatusCodes.BAD_REQUEST,
-        MESSAGES.api.MISSING_QUERY_PARAMETER
-      );
-    }
-
-    const { status, result } = await userService.findUser({ email });
-
-    if (status === 'ERROR_FOUND') {
-      return res.sendError(
-        httpCode.StatusCodes.BAD_REQUEST,
-        MESSAGES.api.USER_NOT_FOUND
-      );
-    }
-
     const updatedData = await userService.updateUser(
-      { _id: result._id },
+      { _id },
       { isPasswordReset: true }
     );
 
-    if (updatedData.hasError) throw new Error();
+    if (updatedData.status === 'ERROR_FOUND')
+      throw new Error('Unable to Update User data in Database');
 
     const sendEmail = await sendResetPasswordLink(updatedData.result, req);
 
-    if (sendEmail.hasError) throw new Error();
+    if (sendEmail.status === 'ERROR_FOUND')
+      throw new Error('Unable to send Forget Password Mail to User');
 
     res.sendSuccess(MESSAGES.api.PASSWORD_RESET_LINK, httpCode.StatusCodes.OK);
   } catch (ex) {
@@ -85,12 +79,14 @@ const resetPassword = async (req, res) => {
   try {
     const userData = await userService.getPassword(req.user);
 
-    if (userData.status === 'ERROR_FOUND') {
+    if (userData.status === 'ERROR_FOUND')
+      throw new Error('Unable to retrieve user data from database');
+
+    if (!req.user.isPasswordReset)
       return res.sendError(
         httpCode.StatusCodes.BAD_REQUEST,
-        MESSAGES.api.USER_NOT_FOUND
+        MESSAGES.api.PASSWORD_RESET_LINK_NOT_GENERATED
       );
-    }
 
     const verifyPassword = await verifyHash(
       userData.result.password,
@@ -104,12 +100,19 @@ const resetPassword = async (req, res) => {
       );
     }
 
-    if (verifyPassword.status === 'ERROR_FOUND') throw new Error();
+    if (verifyPassword.status === 'ERROR_FOUND')
+      throw new Error(
+        'Error in Password verification with the stored password in database'
+      );
 
     const hashedPassword = await generateHash(req.body.password);
 
+    if (hashedPassword.status === 'ERROR_FOUND')
+      throw new Error('Unable to generate Hashed Password');
+
     const updateUser = await userService.updateUser(req.user, {
-      password: hashedPassword,
+      password: hashedPassword.hash,
+      isPasswordReset: false,
     });
 
     if (updateUser.status === 'ERROR_FOUND') {
@@ -119,10 +122,7 @@ const resetPassword = async (req, res) => {
       );
     }
 
-    res.sendSuccess(
-      MESSAGES.api.UPDATE_SUCCESSFULL,
-      httpCode.StatusCodes.SUCCESS
-    );
+    res.sendSuccess(MESSAGES.api.UPDATE_SUCCESSFULL, httpCode.StatusCodes.OK);
   } catch (ex) {
     ErrorHandler.extractError(ex);
     res.sendError(
@@ -132,11 +132,11 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// Define all the user route here
+// Define all the auth route here
 
 router.get('/confirmemail', confirmAuthToken, confirmEmail);
 
-router.get('/forgetpassword', forgetPassword);
+router.get('/forgetpassword', protect, forgetPassword);
 
 router.post('/reset', confirmAuthToken, resetPassword);
 

@@ -1,24 +1,48 @@
+// Library
+
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
-const { UNKNOWN_SERVER_ERROR } = require('../../../constants/http-codes');
+const httpCode = require('http-status-codes');
+
+// Services
+
 const ErrorHandler = require('../../utils/errorHandler');
 const userService = require('../services/userService');
 const { MESSAGES } = require('../../../constants');
-const { saveUserSchema } = require('../validators/user.schema');
-const httpCode = require('http-status-codes');
-const httpCodes = require('../../../constants/http-codes');
+
+// Imports
+
 const { generateAuthToken, protect } = require('../middleware/auth');
-const { generateHash, compareHash } = require('../middleware/hash');
+const { generateHash, compareHash, verifyHash } = require('../middleware/hash');
 const { sendEmailConfirmation } = require('../services/mailService');
 
-const saveUser = async (req, res) => {
+// Functions
+
+const createUser = async (req, res) => {
+  const user = req.body;
+
   try {
-    const { status, result } = await userService.saveUser(req.body);
-    if (status === 'USER_SAVED') {
-      res.sendSuccess(result, MESSAGES.api.SUCCESS, httpCode.StatusCodes.OK);
-    } else {
-      res.sendError(UNKNOWN_SERVER_ERROR, MESSAGES.api.SOMETHING_WENT_WRONG);
-    }
+    const getHashedPassword = await generateHash(user.password);
+
+    if (getHashedPassword.status === 'ERROR_FOUND')
+      throw new Error('Unable to generate Hash of given password');
+
+    user['password'] = getHashedPassword.hash;
+
+    const registerUser = await userService.createUser(user);
+
+    if (registerUser.status === 'ERROR_FOUND')
+      throw new Error('Unable to create a new User in database');
+
+    const sendMail = await sendEmailConfirmation(registerUser.result, req);
+
+    if (sendMail.status === 'ERROR_FOUND')
+      throw new Error('Unable to send Email Confirmation');
+
+    res.sendSuccess(
+      registerUser.result,
+      MESSAGES.api.CREATED,
+      httpCode.StatusCodes.CREATED
+    );
   } catch (ex) {
     ErrorHandler.extractError(ex);
     res.sendError(
@@ -28,30 +52,18 @@ const saveUser = async (req, res) => {
   }
 };
 
-const createUser = async (req, res) => {
+const loginUser = async (req, res) => {
   try {
-    const user = req.body;
+    const generateToken = await generateAuthToken(req.user._id);
 
-    user['password'] = await generateHash(user.password);
+    if (generateToken.status === 'ERROR_FOUND')
+      throw new Error('Unable to generate Authorization Token');
 
-    let errorFound = true;
-
-    const { status, result } = await userService.createUser(user);
-    if (status === 'USER_CREATED') {
-      const { hasError } = await sendEmailConfirmation(result, req);
-
-      if (!hasError) errorFound = false;
-    }
-
-    if (!errorFound) {
-      res.sendSuccess(
-        result,
-        MESSAGES.api.CREATED,
-        httpCode.StatusCodes.CREATED
-      );
-    } else {
-      res.sendError(UNKNOWN_SERVER_ERROR, MESSAGES.api.SOMETHING_WENT_WRONG);
-    }
+    res.sendSuccess(
+      { token: generateToken.token },
+      MESSAGES.api.SUCCESS,
+      httpCode.StatusCodes.OK
+    );
   } catch (ex) {
     ErrorHandler.extractError(ex);
     res.sendError(
@@ -62,25 +74,7 @@ const createUser = async (req, res) => {
 };
 
 const getProfile = async (req, res) => {
-  res.sendSuccess(req.user, MESSAGES.api.SUCCESS, httpCode.StatusCodes.SUCCESS);
-};
-
-const loginUser = async (req, res) => {
-  try {
-    const token = await generateAuthToken(req.user._id);
-
-    res.sendSuccess(
-      { token },
-      MESSAGES.api.SUCCESS,
-      httpCode.StatusCodes.SUCCESS
-    );
-  } catch (ex) {
-    ErrorHandler.extractError(ex);
-    res.sendError(
-      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
-      MESSAGES.api.SOMETHING_WENT_WRONG
-    );
-  }
+  res.sendSuccess(req.user, MESSAGES.api.SUCCESS, httpCode.StatusCodes.OK);
 };
 
 const logoutUser = (req, res) => {
@@ -108,54 +102,64 @@ const updateUser = async (req, res) => {
     for (let i = 0; i < updates.length; i++) {
       let data = updates[i];
 
-      // if (data === 'password') {
-      //   req.body[data] = await generateHash(req.body[data]);
+      if (data === 'password' && req.body[data].length) {
+        const password = req.body[data];
 
-      //   const { result, hasError } = await userService.getPassword(req.user);
+        const getSavedPassword = await userService.getPassword({
+          _id: req.user._id,
+        });
 
-      //   if (hasError) throw new Error();
+        if (getSavedPassword.status === 'ERROR_FOUND')
+          throw new Error('Cannot Retrieve Password from Database');
 
-      //   console.log(result.password, ' \n', req.body[data]);
+        const Match = await verifyHash(
+          getSavedPassword.result.password,
+          password
+        );
 
-      //   if (result.password !== req.body[data]) flag = true;
+        if (Match.status === 'SUCCESS') continue;
 
-      //   console.log(flag);
-      // }
+        if (Match.status === 'ERROR_FOUND')
+          throw new Error(
+            'Internal Error Occured During Password Verification'
+          );
 
-      if (
-        req.body[data].length &&
-        data !== 'password' &&
-        req.body[data] !== req.user[data]
-      )
+        const getHashedPassword = await generateHash(password);
+
+        if (getHashedPassword.status === 'ERROR_FOUND')
+          throw new Error('Cannot generate Hashed Password');
+
+        req.user[data] = getHashedPassword.hash;
+
         flag = true;
-
-      req.user[data] = req.body[data];
+      } else if (req.body[data].length && req.body[data] !== req.user[data]) {
+        req.user[data] = req.body[data];
+        flag = true;
+      }
     }
 
     if (!flag) {
-      res.sendSuccess(
+      delete req.body.password;
+
+      return res.sendSuccess(
         req.body,
         MESSAGES.api.NO_NEW_UPDATE,
-        httpCode.StatusCodes.SUCCESS
+        httpCode.StatusCodes.OK
       );
     }
 
-    const { result, hasError } = await userService.updateUser(
+    const updatedUser = await userService.updateUser(
       { _id: req.user._id },
       req.user
     );
 
-    if (hasError) {
-      return res.sendError(
-        httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
-        MESSAGES.api.UPDATE_UNSUCCESSFULL
-      );
-    }
+    if (updatedUser.status === 'ERROR_FOUND')
+      throw new Error('Unable to Update User in Database');
 
     res.sendSuccess(
-      result,
+      updatedUser.result,
       MESSAGES.api.UPDATE_SUCCESSFULL,
-      httpCode.StatusCodes.SUCCESS
+      httpCode.StatusCodes.OK
     );
   } catch (ex) {
     ErrorHandler.extractError(ex);
@@ -167,17 +171,10 @@ const updateUser = async (req, res) => {
 };
 
 // Define all the user route here
-router.put(
-  '/save',
-  celebrate({
-    body: saveUserSchema,
-  }),
-  saveUser
-);
-
-router.post('/login', compareHash, loginUser);
 
 router.post('/register', createUser);
+
+router.post('/login', compareHash, loginUser);
 
 router.get('/profile', protect, getProfile);
 

@@ -1,14 +1,30 @@
+// Library
+
 const bcrypt = require('bcryptjs');
-const appSettings = require('../../../config/index');
-const userService = require('../services/userService');
-const ErrorHandler = require('../../utils/errorHandler');
 const httpCode = require('http-status-codes');
+
+// Services
+
+const ErrorHandler = require('../../utils/errorHandler');
 const { MESSAGES } = require('../../../constants');
+const appSettings = require('../../../config/index');
+
+// Imports
+
+const userService = require('../services/userService');
+
+// Functions
 
 const generateHash = async (password) => {
-  const hash = await bcrypt.hash(password, +appSettings.saltRound);
+  try {
+    const hash = await bcrypt.hash(password, +appSettings.saltRound);
 
-  return hash;
+    return { status: 'SUCCESS', hash };
+  } catch (ex) {
+    ErrorHandler.extractError(ex);
+
+    return { status: 'ERROR_FOUND' };
+  }
 };
 
 const verifyHash = async (encryptedPassword, password) => {
@@ -29,8 +45,16 @@ const verifyHash = async (encryptedPassword, password) => {
 
 const compareHash = async (req, res, next) => {
   try {
+    const { email, password } = req.body;
+
+    if (!email || !password)
+      return res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.validations.MISSING_CREDENTIALS
+      );
+
     const { result, status } = await userService.getPassword({
-      email: req.body.email,
+      email,
     });
 
     if (status === 'ERROR_FOUND') {
@@ -40,9 +64,14 @@ const compareHash = async (req, res, next) => {
       );
     }
 
-    const isMatch = await bcrypt.compare(req.body.password, result.password);
+    const isMatch = await bcrypt.compare(password, result.password);
 
-    if (!isMatch) throw new Error();
+    if (!isMatch) {
+      return res.sendError(
+        httpCode.StatusCodes.BAD_REQUEST,
+        MESSAGES.api.INVALID_CREDENTIALS
+      );
+    }
 
     req.user = { _id: result._id };
 
@@ -50,8 +79,8 @@ const compareHash = async (req, res, next) => {
   } catch (ex) {
     ErrorHandler.extractError(ex);
     res.sendError(
-      httpCode.StatusCodes.BAD_REQUEST,
-      MESSAGES.api.INVALID_CREDENTIALS
+      httpCode.StatusCodes.INTERNAL_SERVER_ERROR,
+      MESSAGES.api.SOMETHING_WENT_WRONG
     );
   }
 };

@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add a password'],
   },
-  resetPasswordToken: String,
   isEmailConfirmed: {
     type: Boolean,
     default: false,
