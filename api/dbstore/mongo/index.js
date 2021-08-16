@@ -20,12 +20,6 @@ mongoose.connect(
 );
 
 const createUser = async (body) => {
-  // const result = await User.schema.create({ $set: body }, (error, doc) => {
-  //   if (error) hasError = error;
-  // });
-
-  // return { result: result.toJSON(), hasError };
-
   try {
     const result = await User.schema.create(body);
 
@@ -49,16 +43,7 @@ const findUser = async (body) => {
   try {
     const result = await User.schema.findOne(body);
 
-    // Case 1 :- In this case password is not deleted
-    // console.log(typeof result);
-
-    // delete result.password;
-
-    // Case 2 :- Password is deleted when we use toJSON method
-
     const final = result.toJSON();
-
-    // console.log(typeof final);
 
     delete final.password;
 

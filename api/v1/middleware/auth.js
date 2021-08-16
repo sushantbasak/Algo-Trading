@@ -30,8 +30,6 @@ const generateAuthToken = async (userId, expiry = false) => {
       secretValue = resetsecret;
     }
 
-    console.log(secretValue, expiryTime);
-
     const token = await jwt.sign(
       { id: userId, date: new Date().getTime() },
       secretValue,

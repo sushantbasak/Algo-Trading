@@ -19,22 +19,6 @@ const sendMail = async ({ receiverMailAddress, configuration }) => {
     ...configuration,
   };
 
-  // const result = await transporter.sendMail(
-  //   mailOptions,
-  //   function (error, info) {
-  //     if (error) {
-  //       console.log(error);
-  //       return { status: 'ERROR_FOUND', hasError: true };
-  //     } else {
-  //       console.log('Email sent: ' + info.response);
-
-  //       return { status: 'SUCCESS ', hasError: false };
-  //     }
-  //   }
-  // );
-
-  // return result;
-
   try {
     const response = await transporter.sendMail(mailOptions);
 
