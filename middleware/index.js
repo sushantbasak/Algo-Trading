@@ -4,7 +4,7 @@ const express = require('express');
 const appSettings = require('../config');
 const api = require('../api');
 const bodyParser = require('body-parser');
-const { celebrate, Joi, errors, isCelebrate } = require('celebrate');
+const { celebrate, Joi, errors, isCelebrateError } = require('celebrate');
 const { apiResponseGenerator } = require('../init/bootstrap');
 const expressValidator = require('../init/validations');
 const compression = require('compression');
@@ -40,7 +40,8 @@ const middleware = async () => {
   // connect to api
   app.use('/api', api);
   app.use((err, req, res, next) => {
-    if (isCelebrate(err)) {
+    if (isCelebrateError(err)) {
+      console.log(err);
       res.sendValidationError(err.message);
       return;
     }

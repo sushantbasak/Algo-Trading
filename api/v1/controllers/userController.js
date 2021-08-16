@@ -2,6 +2,7 @@
 
 const router = require('express').Router();
 const httpCode = require('http-status-codes');
+const { celebrate } = require('celebrate');
 
 // Services
 
@@ -14,11 +15,13 @@ const { MESSAGES } = require('../../../constants');
 const { generateAuthToken, protect } = require('../middleware/auth');
 const { generateHash, compareHash, verifyHash } = require('../middleware/hash');
 const { sendEmailConfirmation } = require('../services/mailService');
-
+const { userSchema } = require('../validators/user.schema');
 // Functions
 
 const createUser = async (req, res) => {
-  const user = req.body;
+  const { name, email, password } = req.body;
+
+  const user = { name, email, password };
 
   try {
     const getHashedPassword = await generateHash(user.password);
@@ -172,13 +175,28 @@ const updateUser = async (req, res) => {
 
 // Define all the user route here
 
-router.post('/register', createUser);
+router.post(
+  '/register',
+  celebrate({
+    body: userSchema,
+  }),
+  createUser
+);
+
+// router.post('/register', createUser);
 
 router.post('/login', compareHash, loginUser);
 
 router.get('/profile', protect, getProfile);
 
-router.patch('/update', protect, updateUser);
+router.patch(
+  '/update',
+  protect,
+  celebrate({
+    body: userSchema,
+  }),
+  updateUser
+);
 
 router.get('/logout', logoutUser);
 
