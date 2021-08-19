@@ -4,7 +4,7 @@ const Pattern =
   '^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$';
 
 const userSchema = Joi.object().keys({
-  mode: Joi.string().allow('').default(1),
+  mode: Joi.number().allow('').default(1),
   name: Joi.string().when('mode', {
     is: 1,
     then: Joi.string().required(),
@@ -26,4 +26,9 @@ const userSchema = Joi.object().keys({
   }),
 });
 
-module.exports = { userSchema };
+const loginSchema = Joi.object().keys({
+  email: Joi.string().email().trim().lowercase().required(),
+  password: Joi.string().pattern(new RegExp(Pattern)),
+});
+
+module.exports = { userSchema, loginSchema };

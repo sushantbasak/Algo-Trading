@@ -67,6 +67,10 @@ const protect = async (req, res, next) => {
       );
     }
 
+    const pathname = url.parse(req.url, true).pathname;
+
+    if (pathname === '/update') req.body = { ...req.body, mode: 0 };
+
     req.user = result;
 
     next();
@@ -97,6 +101,8 @@ const confirmAuthToken = async (req, res, next) => {
     if (pathname === '/confirmemail') {
       secretValue = secret;
     }
+
+    if (pathname === '/reset') req.body = { ...req.body, mode: 0 };
 
     const decoded = await jwt.verify(token, secretValue);
 

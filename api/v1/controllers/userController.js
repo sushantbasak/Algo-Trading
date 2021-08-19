@@ -15,7 +15,7 @@ const { MESSAGES } = require('../../../constants');
 const { generateAuthToken, protect } = require('../middleware/auth');
 const { generateHash, compareHash, verifyHash } = require('../middleware/hash');
 const { sendEmailConfirmation } = require('../services/mailService');
-const { userSchema } = require('../validators/user.schema');
+const { userSchema, loginSchema } = require('../validators/user.schema');
 // Functions
 
 const createUser = async (req, res) => {
@@ -85,6 +85,10 @@ const logoutUser = (req, res) => {
 };
 
 const updateUser = async (req, res) => {
+  delete req.body.mode;
+
+  delete req.body.confirmPassword;
+
   const updates = Object.keys(req.body);
 
   const allowedUpdates = ['name', 'email', 'password'];
@@ -185,7 +189,14 @@ router.post(
 
 // router.post('/register', createUser);
 
-router.post('/login', compareHash, loginUser);
+router.post(
+  '/login',
+  celebrate({
+    body: loginSchema,
+  }),
+  compareHash,
+  loginUser
+);
 
 router.get('/profile', protect, getProfile);
 

@@ -3,6 +3,7 @@
 const router = require('express').Router();
 const url = require('url');
 const httpCode = require('http-status-codes');
+const { celebrate } = require('celebrate');
 
 // Services
 
@@ -15,6 +16,7 @@ const { MESSAGES } = require('../../../constants');
 const { confirmAuthToken, protect } = require('../middleware/auth');
 const { sendResetPasswordLink } = require('../services/mailService');
 const { verifyHash, generateHash } = require('../middleware/hash');
+const { userSchema } = require('../validators/user.schema');
 
 // Functions
 
@@ -138,6 +140,13 @@ router.get('/confirmemail', confirmAuthToken, confirmEmail);
 
 router.get('/forgetpassword', protect, forgetPassword);
 
-router.post('/reset', confirmAuthToken, resetPassword);
+router.post(
+  '/reset',
+  confirmAuthToken,
+  celebrate({
+    body: userSchema,
+  }),
+  resetPassword
+);
 
 module.exports = router;
