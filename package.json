@@ -16,6 +16,7 @@
     "eslint-plugin-import": "^2.23.4"
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "celebrate": "^15.0.0",
     "chalk": "^4.1.2",
     "compression": "^1.7.4",
@@ -23,7 +24,9 @@
     "express": "^4.17.1",
     "express-validator": "^5.3.1",
     "http-status-codes": "^2.1.4",
+    "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.13.5",
+    "nodemailer": "^6.6.3",
     "uuid": "^8.3.2"
   }
 }
